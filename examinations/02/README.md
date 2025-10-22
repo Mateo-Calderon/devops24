@@ -153,3 +153,95 @@ In your Ansible working directory where the `ansible.cfg' is, run
 You should get a pager displaying all available configuration values. How does it differ
 from when you run the same command in your usual home directory?
 
+
+## QUESTION A
+
+What happens if you run `ansible-inventory --list` in the directory you created above?
+
+ansible-inventory --list shows the complete inventory in JSON format.
+
+## QUESTION B
+
+What happens if you run `ansible-inventory --graph` in the directory you created above?
+
+ansible-inventory --graph shows your inventory as a simple text-based tree (a graph of host groups and hosts).
+
+## QUESTION C
+
+In the `hosts` file, add a new host with the same hostname as the machine you're running
+ansible on:
+
+    [controller]
+    <hostname_of_your_machine> ansible_connection=local
+
+Now run:
+
+    $ ansible -m ping all
+
+Study the output of this command.
+
+What does the `ansible_connection=local` part mean?
+
+The option ansible_connection=local tells Ansible not to use SSH to connect to the host.
+Instead, it runs all tasks directly on the local machine where Ansible is executed.
+
+{
+    "_meta": {
+        "hostvars": {
+            "192.168.121.148": {
+                "ansible_ssh_private_key_file": "/home/gato/devops24/devops24/lab_environment/deploy_key",
+                "ansible_user": "deploy"
+            },
+            "192.168.121.32": {
+                "ansible_ssh_private_key_file": "/home/gato/devops24/devops24/lab_environment/deploy_key",
+                "ansible_user": "deploy"
+            }
+        }
+    },
+    "all": {
+        "children": [
+            "ungrouped",
+            "dbserver",
+            "webserver"
+        ]
+    },
+    "dbserver": {
+        "hosts": [
+            "192.168.121.32"
+        ]
+    },
+    "webserver": {
+        "hosts": [
+            "192.168.121.148"
+        ]
+    }
+}
+----------------------------------------------------------------
+@all:
+  |--@ungrouped:
+  |--@dbserver:
+  |  |--192.168.121.32
+  |--@webserver:
+  |  |--192.168.121.148
+----------------------------------------------------------------
+  gato-Precision-T1650 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+192.168.121.32 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
+192.168.121.148 | SUCCESS => {
+    "ansible_facts": {
+        "discovered_interpreter_python": "/usr/bin/python3"
+    },
+    "changed": false,
+    "ping": "pong"
+}
