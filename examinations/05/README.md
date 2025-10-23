@@ -74,7 +74,11 @@ a number of keys and values that come from the output of the Ansible module.
 
 What does the output look like the first time you run this playbook?
 
+On the first run it will show "changed=1" because the file is being copy
+
 What does the output look like the second time you run this playbook?
+
+The task will show "changed=0" because the file already exists and is identical
 
 # QUESTION B
 
@@ -114,12 +118,106 @@ Again, these addresses are just examples, make sure you use the IP of the actual
 Note also that `curl` needs the `--insecure` option to establish a connection to a HTTPS server with
 a self signed certificate.
 
+---
+- name: Configure HTTPS on webserver
+  hosts: webserver
+  become: true
+  tasks:
+    - name: Copy HTTPS configuration file
+      ansible.builtin.copy:
+        src: /home/gato/ansible/files/https.conf
+        dest: /etc/nginx/conf.d/https.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Restart nginx to apply HTTPS configuration
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
 # QUESTION C
 
 What is the disadvantage of having a task that _always_ makes sure a service is restarted, even if there is
 no configuration change?
 
+Restarting a service unnecessarily can:
+Cause temporary downtime for users.
+Interrupt ongoing connections or active sessions.
+Be inefficient and may impact system stability if done frequently.
+
 # BONUS QUESTION
 
 There are at least two _other_ modules, in addition to the `ansible.builtin.service` module that can restart
 a `systemd` service with Ansible. Which modules are they?
+
+
+
+❯ ansible-playbook install-cert.yml
+
+PLAY [Set up self-signed certificates for HTTPS] *******************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.121.148]
+
+TASK [Ensure the /etc/pki/nginx directory exists] ******************************
+changed: [192.168.121.148]
+
+TASK [Ensure we have a /etc/pkig/nginx/private directory] **********************
+changed: [192.168.121.148]
+
+TASK [Ensure we have necessary software installed] *****************************
+changed: [192.168.121.148]
+
+TASK [Ensure we have a private key for our certificate] ************************
+changed: [192.168.121.148]
+
+TASK [Create a self-signed certificate] ****************************************
+changed: [192.168.121.148]
+
+PLAY RECAP *********************************************************************
+192.168.121.148            : ok=6    changed=5    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0 
+
+-------------------------------------------------------
+
+❯ ansible-playbook -v 05-web.yml
+Using /home/gato/ansible/ansible.cfg as config file
+
+PLAY [Configure HTTPS on webserver] ****************************************************************************************************
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [192.168.121.148]
+
+TASK [Copy HTTPS configuration file] ***************************************************************************************************
+changed: [192.168.121.148] => {"changed": true, "checksum": "4928f5d40694d15bf3e276596d47b8fc75544d59", "dest": "/etc/nginx/conf.d/https.conf", "gid": 0, "group": "root", "md5sum": "a3bb0c727d3e156afa3a11d78b406c83", "mode": "0644", "owner": "root", "secontext": "system_u:object_r:httpd_config_t:s0", "size": 465, "src": "/home/deploy/.ansible/tmp/ansible-tmp-1761152285.4239113-21732-201301911016887/source", "state": "file", "uid": 0}
+
+PLAY RECAP *****************************************************************************************************************************
+192.168.121.148            : ok=2    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+❯ ansible-playbook -v 05-web.yml
+Using /home/gato/ansible/ansible.cfg as config file
+
+PLAY [Configure HTTPS on webserver] ****************************************************************************************************
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [192.168.121.148]
+
+TASK [Copy HTTPS configuration file] ***************************************************************************************************
+ok: [192.168.121.148] => {"changed": false, "checksum": "4928f5d40694d15bf3e276596d47b8fc75544d59", "dest": "/etc/nginx/conf.d/https.conf", "gid": 0, "group": "root", "mode": "0644", "owner": "root", "path": "/etc/nginx/conf.d/https.conf", "secontext": "system_u:object_r:httpd_config_t:s0", "size": 465, "state": "file", "uid": 0}
+
+PLAY RECAP *****************************************************************************************************************************
+192.168.121.148            : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+❯ ansible-playbook -v 05-web.yml
+Using /home/gato/ansible/ansible.cfg as config file
+
+PLAY [Configure HTTPS on webserver] ****************************************************************************************************
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [192.168.121.148]
+
+TASK [Copy HTTPS configuration file] ***************************************************************************************************
+ok: [192.168.121.148] => {"changed": false, "checksum": "4928f5d40694d15bf3e276596d47b8fc75544d59", "dest": "/etc/nginx/conf.d/https.conf", "gid": 0, "group": "root", "mode": "0644", "owner": "root", "path": "/etc/nginx/conf.d/https.conf", "secontext": "system_u:object_r:httpd_config_t:s0", "size": 465, "state": "file", "uid": 0}
+
+PLAY RECAP *****************************************************************************************************************************
+192.168.121.148            : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
