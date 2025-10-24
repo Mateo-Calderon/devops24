@@ -119,6 +119,37 @@ HINTS:
   also set the correct SELinux security context type on the directory and files. The context in question
   in this case should be `httpd_sys_content_t` for the `/var/www/example.internal/html/` directory.
 
+ansible.builtin.file is used to create directories.
+setype: httpd_sys_content_t ensures that SELinux allows nginx to serve files from this directory.
+The second task copies your local index.html file to the web server.
+Both tasks ensure correct ownership and permissions.
+
+---
+- name: Configure website directory and index file
+  hosts: webserver
+  become: true
+  tasks:
+    - name: Create web root directory
+      ansible.builtin.file:
+        path: /var/www/example.internal/html
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+        serole: _default
+        setype: httpd_sys_content_t
+        seuser: system_u
+        selevel: s0
+
+    - name: Upload index.html
+      ansible.builtin.copy:
+        src: files/index.html
+        dest: /var/www/example.internal/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+        setype: httpd_sys_content_t
+
 # QUESTION B
 
 To each of the tasks that change configuration files in the webserver, add a `register: [variable_name]`.
@@ -167,6 +198,91 @@ There are several ways to accomplish this, and there is no _best_ way to do this
 
 Is this a good way to handle these types of conditionals? What do you think?
 
+Each copy task uses register: to save its result.
+The last task (service restart) runs only if either of the previous tasks changed something.
+This keeps the playbook idempotent — no unnecessary restarts.
+
+---
+- name: Configure HTTPS on webserver
+  hosts: webserver
+  become: true
+  tasks:
+    - name: Copy HTTPS configuration file
+      ansible.builtin.copy:
+        src: /home/gato/ansible/files/https.conf
+        dest: /etc/nginx/conf.d/https.conf
+        owner: root
+        group: root
+        mode: '0644'
+      register: https_result
+
+    - name: Ensure the nginx configuration is updated for example.internal
+      ansible.builtin.copy:
+        src: files/example.internal.conf
+        dest: /etc/nginx/conf.d/example.internal.conf
+        owner: root
+        group: root
+        mode: '0644'
+      register: conf_result
+
+    - name: Create web root directory
+      ansible.builtin.file:
+        path: /var/www/example.internal/html
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+        serole: _default
+        setype: httpd_sys_content_t
+        seuser: system_u
+        selevel: s0
+
+    - name: Upload index.html
+      ansible.builtin.copy:
+        src: files/index.html
+        dest: /var/www/example.internal/html/index.html
+        owner: root
+        group: root
+        mode: '0644'
+        setype: httpd_sys_content_t
+
+    - name: Restart nginx only if configuration changed
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+      when: https_result.changed or conf_result.changed
+
+❯ curl -v http://192.168.121.148
+*   Trying 192.168.121.148:80...
+* Connected to 192.168.121.148 (192.168.121.148) port 80
+> GET / HTTP/1.1
+> Host: 192.168.121.148
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Server: nginx/1.20.1
+< Date: Thu, 23 Oct 2025 13:10:52 GMT
+< Content-Type: text/html
+< Content-Length: 308
+< Last-Modified: Thu, 23 Oct 2025 13:10:26 GMT
+< Connection: keep-alive
+< ETag: "68fa2942-134"
+< Accept-Ranges: bytes
+< 
+<?xml version="1.0"?>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Hello Nackademin!</title>
+  </head>
+  <body>
+    <h1>Hello Nackademin!</h1>
+    <p>This is a totally awesome web page</p>
+    <p>This page has been uploaded with <a href="https://docs.ansible.com/">Ansible</a>!</p>
+  </body>
+</html>
+
 # BONUS QUESTION
 
 Imagine you had a playbook with hundreds of tasks to be done on several hosts, and each one of these tasks
@@ -177,3 +293,28 @@ would you like the flow to work?
 
 Describe in simple terms what your preferred task flow would look like, not necessarily implemented in
 Ansible, but in general terms.
+
+
+
+--------------------------------------------------------------------
+
+❯ ansible-playbook 06-web.yml
+
+PLAY [Configure HTTPS on webserver] ********************************************************************
+
+TASK [Gathering Facts] *********************************************************************************
+ok: [192.168.121.148]
+
+TASK [Copy HTTPS configuration file] *******************************************************************
+ok: [192.168.121.148]
+
+TASK [Ensure the nginx configuration is updated for example.internal] **********************************
+changed: [192.168.121.148]
+
+TASK [Restart nginx to apply HTTPS configuration] ******************************************************
+changed: [192.168.121.148]
+
+PLAY RECAP *********************************************************************************************
+192.168.121.148            : ok=4    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0 
+
+-------------------------------------------------------------------------

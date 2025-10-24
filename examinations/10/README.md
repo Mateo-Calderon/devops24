@@ -28,6 +28,52 @@ address of the virtual machine itself.
 
 Use the `ansible.builtin.template` module to accomplish this task.
 
+---
+- name: Configure webserver using template
+  hosts: webserver
+  become: true
+  tasks:
+    - name: Ensure web root exists
+      ansible.builtin.file:
+        path: /var/www/example.internal/html
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Upload templated nginx configuration
+      ansible.builtin.template:
+        src: templates/example.internal.conf.j2
+        dest: /etc/nginx/conf.d/example.internal.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Restart nginx to apply configuration
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
+
+❯ ansible-playbook -i host 10-web-template.yml
+
+PLAY [Configure webserver using template] **********************************************************************************************
+
+TASK [Gathering Facts] *****************************************************************************************************************
+ok: [192.168.121.148]
+
+TASK [Ensure web root exists] **********************************************************************************************************
+ok: [192.168.121.148]
+
+TASK [Upload templated nginx configuration] ********************************************************************************************
+changed: [192.168.121.148]
+
+TASK [Restart nginx to apply configuration] ********************************************************************************************
+changed: [192.168.121.148]
+
+PLAY RECAP *****************************************************************************************************************************
+192.168.121.148            : ok=4    changed=2    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+
 # Resources and Documentation
 
 * https://docs.ansible.com/ansible/latest/collections/ansible/builtin/template_module.html

@@ -41,3 +41,66 @@ HINT: You can use
 
 to create a skeleton for a role. You won't need ALL the directories created by this,
 but it gives you a starting point to fill out in case you don't want to start from scratch.
+
+❯ ansible-playbook -i host 12-roles.yml --ask-vault-pass
+
+Vault password: 
+
+PLAY [Configure the web server(s) according to specs] **************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.121.148]
+
+TASK [webserver : Ensure nginx is installed] ***********************************
+ok: [192.168.121.148]
+
+TASK [webserver : Ensure nginx is started at boot] *****************************
+ok: [192.168.121.148]
+
+TASK [webserver : Copy HTTPS configuration file] *******************************
+ok: [192.168.121.148]
+
+TASK [webserver : Ensure the nginx configuration is updated for example.internal] ***
+changed: [192.168.121.148]
+
+TASK [webserver : Create web root directory] ***********************************
+ok: [192.168.121.148]
+
+TASK [webserver : Upload index.html] *******************************************
+ok: [192.168.121.148]
+
+TASK [webserver : Restart nginx only if configuration changed] *****************
+changed: [192.168.121.148]
+
+TASK [webserver : Ensure web root exists] **************************************
+ok: [192.168.121.148]
+
+TASK [webserver : Upload templated nginx configuration] ************************
+changed: [192.168.121.148]
+
+PLAY [Configure the database server(s) according to specs] *********************
+
+TASK [Gathering Facts] *********************************************************
+ok: [192.168.121.32]
+
+TASK [dbserver : Ensure MariaDB-server is installed] ***************************
+ok: [192.168.121.32]
+
+TASK [dbserver : Ensure MariaDB service is started and enabled at boot] ********
+ok: [192.168.121.32]
+
+TASK [dbserver : Ensure Python MySQL library is installed] *********************
+ok: [192.168.121.32]
+
+TASK [dbserver : Create a database called webappdb] ****************************
+ok: [192.168.121.32]
+
+TASK [dbserver : Create a user for the web application (password stored securely)] ***
+[WARNING]: Option column_case_sensitive is not provided. The default is now
+false, so the column's name will be uppercased. The default will be changed to
+true in community.mysql 4.0.0.
+ok: [192.168.121.32]
+
+PLAY RECAP *********************************************************************
+192.168.121.148            : ok=10   changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+192.168.121.32             : ok=6    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0 
