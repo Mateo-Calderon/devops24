@@ -36,3 +36,20 @@ provided instead.
 To be able to use the password when running the playbooks later, you must use the `--ask-become-pass`
 option to `ansible` and `ansible-playbook` to provide the password. You can also place the password
 in a file, like with `ansible-vault`, or have it encrypted via `ansible-vault`.
+
+❯ ansible-playbook 17-sudo-rules.yml --ask-become-pass
+BECOME password: 
+
+PLAY [Configure sudo to require password for deploy user] **********************
+
+TASK [Ensure deploy user has correct password] *********************************
+ok: [192.168.121.148]
+ok: [192.168.121.32]
+
+TASK [Configure sudoers rule for deploy (password required)] *******************
+ok: [192.168.121.148]
+ok: [192.168.121.32]
+
+PLAY RECAP *********************************************************************
+192.168.121.148            : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+192.168.121.32             : ok=2    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
