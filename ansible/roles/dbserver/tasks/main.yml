@@ -38,3 +38,18 @@
     host: localhost
     state: present
     login_unix_socket: /var/lib/mysql/mysql.sock
+
+- name: Ensure deploy user exists
+  user:
+    name: deploy
+    state: present
+
+- name: Copy all .md files from files/ to deploys home
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "/home/deploy"
+    owner: deploy
+    group: deploy
+    mode: '0644'
+  with_fileglob:
+    - "/home/gato/ansible/files/*.md"
