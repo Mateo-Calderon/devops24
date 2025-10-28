@@ -1,0 +1,64 @@
+---
+# tasks file for webserver
+- name: Ensure nginx is installed
+  ansible.builtin.package:
+    name: nginx
+    state: present
+
+- name: Ensure nginx is started at boot
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
+    state: started
+
+- name: Copy HTTPS configuration file
+  ansible.builtin.copy:
+    src: /home/gato/ansible/files/https.conf
+    dest: /etc/nginx/conf.d/https.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload nginx
+
+- name: Ensure the nginx configuration is updated for example.internal
+  ansible.builtin.copy:
+    src: files/example.internal.conf
+    dest: /etc/nginx/conf.d/example.internal.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload nginx
+
+- name: Create web root directory
+  ansible.builtin.file:
+    path: /var/www/example.internal/html
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+    setype: httpd_sys_content_t
+
+- name: Upload index.html
+  ansible.builtin.copy:
+    src: files/index.html
+    dest: /var/www/example.internal/html/index.html
+    owner: root
+    group: root
+    mode: '0644'
+    setype: httpd_sys_content_t
+
+- name: Ensure web root exists
+  ansible.builtin.file:
+    path: /var/www/example.internal/html
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Upload templated nginx configuration
+  ansible.builtin.template:
+    src: templates/example.internal.conf.j2
+    dest: /etc/nginx/conf.d/example.internal.conf
+    owner: root
+    group: root
+    mode: '0644'

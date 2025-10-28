@@ -1,0 +1,20 @@
+---
+- name: Copy all markdown files to deploy users home directory
+  hosts: dbserver
+  become: true
+  tasks:
+
+    - name: Ensure deploy user exists
+      user:
+        name: deploy
+        state: present
+
+    - name: Copy all .md files from files/ to deploys home
+      ansible.builtin.copy:
+        src: "{{ item }}"
+        dest: "/home/deploy"
+        owner: deploy
+        group: deploy
+        mode: '0644'
+      with_fileglob:
+        - "files/*.md"

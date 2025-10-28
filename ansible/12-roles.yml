@@ -1,0 +1,12 @@
+---
+- name: Configure the web server(s) according to specs
+  hosts: webserver
+  become: true
+  roles:
+    - webserver
+
+- name: Configure the database server(s) according to specs
+  hosts: dbserver
+  become: true
+  roles:
+    - dbserver

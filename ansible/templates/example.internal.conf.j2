@@ -1,0 +1,9 @@
+server {
+    listen {{ ansible_default_ipv4.address }}:80;
+    server_name example.internal;
+
+    root /var/www/example.internal/html;
+
+    include /etc/nginx/default.d/*.conf;
+}
+

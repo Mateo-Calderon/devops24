@@ -1,0 +1,16 @@
+---
+- name: Create users and assign groups
+  hosts: webserver
+  become: true
+  tasks:
+    - name: Ensure users exist with correct groups
+      ansible.builtin.user:
+        name: "{{ item.name }}"
+        groups: "{{ item.groups | join(',') }}"
+        append: true
+        state: present
+      loop:
+        - { name: 'alovelace', groups: ['wheel', 'audio', 'video'] }
+        - { name: 'aturing', groups: ['tape'] }
+        - { name: 'edijkstra', groups: ['tcpdump'] }
+        - { name: 'ghopper', groups: ['wheel', 'audio'] }

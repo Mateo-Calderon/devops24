@@ -1,0 +1,25 @@
+---
+- name: Configure webserver using template
+  hosts: webserver
+  become: true
+  tasks:
+    - name: Ensure web root exists
+      ansible.builtin.file:
+        path: /var/www/example.internal/html
+        state: directory
+        owner: root
+        group: root
+        mode: '0755'
+
+    - name: Upload templated nginx configuration
+      ansible.builtin.template:
+        src: templates/example.internal.conf.j2
+        dest: /etc/nginx/conf.d/example.internal.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Restart nginx to apply configuration
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

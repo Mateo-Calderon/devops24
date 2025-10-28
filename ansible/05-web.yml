@@ -1,0 +1,17 @@
+---
+- name: Configure HTTPS on webserver
+  hosts: webserver
+  become: true
+  tasks:
+    - name: Copy HTTPS configuration file
+      ansible.builtin.copy:
+        src: /home/gato/ansible/files/https.conf
+        dest: /etc/nginx/conf.d/https.conf
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Restart nginx to apply HTTPS configuration
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

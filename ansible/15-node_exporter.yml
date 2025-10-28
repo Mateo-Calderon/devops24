@@ -1,0 +1,82 @@
+---
+- name: Node exporter for Prometheus
+  hosts: all
+  become: true
+  tasks:
+    - name: Create node_exporter user
+      ansible.builtin.user:
+        name: node_exporter
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Create directory structure
+      ansible.builtin.file:
+        path: /var/lib/node_exporter/textfile_collector
+        state: directory
+        owner: node_exporter
+        group: node_exporter
+        mode: "0755"
+        recurse: true
+
+    - name: Copy systemd service file
+      ansible.builtin.copy:
+        src: files/node_exporter.service
+        dest: /etc/systemd/system/node_exporter.service
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Copy systemd socket file
+      ansible.builtin.copy:
+        src: files/node_exporter.socket
+        dest: /etc/systemd/system/node_exporter.socket
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Copy sysconfig file
+      ansible.builtin.copy:
+        src: files/sysconfig.node_exporter
+        dest: /etc/sysconfig/node_exporter
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Download node exporter binary
+      ansible.builtin.get_url:
+        url: https://github.com/prometheus/node_exporter/releases/download/v1.10.0/node_exporter-1.10.0.linux-amd64.tar.gz
+        dest: /tmp/node_exporter.tar.gz
+        mode: "0644"
+
+    - name: Extract node exporter binary
+      ansible.builtin.unarchive:
+        src: /tmp/node_exporter.tar.gz
+        dest: /tmp/
+        remote_src: true
+
+    - name: Copy node_exporter binary to /usr/sbin
+      ansible.builtin.copy:
+        src: /tmp/node_exporter-1.10.0.linux-amd64/node_exporter
+        dest: /usr/sbin/node_exporter
+        remote_src: true
+        owner: node_exporter
+        group: node_exporter
+        mode: "0755"
+
+    - name: Reload systemd to pick up new service and socket files
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Enable and start node_exporter socket
+      ansible.builtin.systemd:
+        name: node_exporter.socket
+        enabled: true
+        state: started
+
+    - name: Open port 9100/tcp in firewall
+      ansible.posix.firewalld:
+        port: 9100/tcp
+        permanent: true
+        immediate: true
+        state: enabled

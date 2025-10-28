@@ -1,0 +1,9 @@
+---
+- name: Uninstall previously installed software
+  hosts: all
+  become: true
+  tasks:
+    - name: Remove vim, bash-completion, and qemu-guest-agent
+      ansible.builtin.package:
+        name: vim,bash-completion,qemu-guest-agent
+        state: absent

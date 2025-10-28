@@ -1,0 +1,61 @@
+---
+- name: Configure firewall on webserver
+  hosts: webserver
+  become: true
+  tasks:
+
+    # Install necessary packages
+    - name: Install firewalld and python3-firewall
+      ansible.builtin.package:
+        name:
+          - firewalld
+          - python3-firewall
+        state: present
+
+    # Ensure firewalld is running and enabled
+    - name: Enable and start firewalld
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Allow HTTP service
+      ansible.posix.firewalld:
+        service: http
+        permanent: true
+        state: enabled
+        immediate: true
+
+    - name: Allow HTTPS service
+      ansible.posix.firewalld:
+        service: https
+        permanent: true
+        state: enabled
+        immediate: true
+
+- name: Configure firewall on dbserver
+  hosts: dbserver
+  become: true
+  tasks:
+
+    # Install necessary packages
+    - name: Install firewalld and python3-firewall
+      ansible.builtin.package:
+        name:
+          - firewalld
+          - python3-firewall
+        state: present
+
+    # Ensure firewalld is running and enabled
+    - name: Enable and start firewalld
+      ansible.builtin.service:
+        name: firewalld
+        state: started
+        enabled: true
+
+    - name: Allow MySQL service
+      ansible.posix.firewalld:
+        service: mysql
+        permanent: true
+        state: enabled
+        immediate: true
