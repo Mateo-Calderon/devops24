@@ -13,7 +13,7 @@
 
 - name: Copy HTTPS configuration file
   ansible.builtin.copy:
-    src: /home/gato/ansible/files/https.conf
+    src: files/https.conf
     dest: /etc/nginx/conf.d/https.conf
     owner: root
     group: root
