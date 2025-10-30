@@ -52,4 +52,4 @@
     group: deploy
     mode: '0644'
   with_fileglob:
-    - "/home/gato/devops24/devops24/ansible/files/*.md"
+    - "files/*.md"
